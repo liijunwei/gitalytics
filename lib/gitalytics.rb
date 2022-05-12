@@ -2,8 +2,10 @@
 
 require 'haml'
 require 'matrix'
+require 'parallel'
 require 'gitalytics/commit'
 require 'gitalytics/gitlog'
+require 'gitalytics/gitlog_with_parallel'
 require 'gitalytics/user'
 require 'gitalytics/version'
 
@@ -13,7 +15,12 @@ module Gitalytics
   module_function
 
   def analyze(options)
-    data = GitLog.parse_git_log(options[:group_by])
+    data =
+    if options[:parallel]
+      GitlogWithParallel.parse_git_log(options[:group_by])
+    else
+      GitLog.parse_git_log(options[:group_by])
+    end
 
     case options[:format]
     when 'html'
@@ -29,7 +36,7 @@ module Gitalytics
 
   def output_cli_report(users)
     users.each do |user|
-      puts user.summary
+      # puts user.summary
     end
   end
 

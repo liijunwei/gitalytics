@@ -23,6 +23,11 @@ OptionParser.new do |opts|
     exit
   end
 
+  opts.on('-z', '--help', 'Print usage') do
+    puts opts
+    exit 0
+  end
+
   opts.on('-h', '--html', 'Outputs html report and displays it in default web browser') do
     options[:format] = 'html'
     options[:browser] = true
@@ -43,7 +48,17 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:benchmark]
-  puts Benchmark.measure { Gitalytics.analyze(options) }
+  Benchmark.bm do |b|
+    b.report "no parallel  " do
+      options[:parallel] = false
+      Gitalytics.analyze(options)
+    end
+
+    b.report "with parallel" do
+      options[:parallel] = true
+      Gitalytics.analyze(options)
+    end
+  end
 else
   Gitalytics.analyze(options)
 end
